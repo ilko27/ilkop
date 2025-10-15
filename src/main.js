@@ -9,6 +9,8 @@ let renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
 
+let mouse = new THREE.Vector2();
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 //set up the renderer with the default settings for threejs.org/editor - revision r153
@@ -65,13 +67,22 @@ function updateCameraAspect(camera) {
     camera.updateProjectionMatrix();
 }
 
+function onDocumentMouseMove(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+}
+
+
 //A method to be run each time a frame is generated
 function animate() {
     requestAnimationFrame(animate);
 
-    renderer.render(scene, camera);
+    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, (-mouse.x * Math.PI) / 100, 0.1)
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, (mouse.y * Math.PI) / 100, 0.1)
+    renderer.render(scene, camera); 
 };
 
 
+document.addEventListener('mousemove', onDocumentMouseMove, false);
 
 
