@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { LoadGLTFByPath } from './Helpers/ModelHelper.js'
-
+import { CSS3DObject, CSS3DRenderer, CSS2DObject } from 'three/examples/jsm/Addons.js';
+import { LightFlicker } from './Misc/LightFlicker.js';
 //Renderer does the job of rendering the graphics
 let renderer = new THREE.WebGLRenderer({
 
@@ -9,8 +10,10 @@ let renderer = new THREE.WebGLRenderer({
     antialias: true,
 });
 
+let rendererCSS3D = new CSS3DRenderer();
 let mouse = new THREE.Vector2();
 
+// sethings for the normal renderer
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 //set up the renderer with the default settings for threejs.org/editor - revision r153
@@ -26,10 +29,25 @@ renderer.setClearColor(0xffffff, 0);
 //make sure three/build/three.module.js is over r152 or this feature is not available. 
 renderer.outputColorSpace = THREE.SRGBColorSpace
 
+// settings for the CSS3D renderer
+rendererCSS3D.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(rendererCSS3D.domElement);
+
+// rendererWebGL = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.domElement.style.position = 'absolute';
+renderer.domElement.style.top = '0';
+// rendererWebGL.setPixelRatio(window.devicePixelRatio);
+// rendererWebGL.setSize(window.innerWidth, window.innerHeight);
+// rendererWebGL.toneMapping = THREE.NeutralToneMapping;
+// rendererWebGL.setAnimationLoop(animate);
+// document.body.appendChild(rendererWebGL.domElement);
+
+
 const scene = new THREE.Scene();
 
 let cameraList = [];
-
+let lightsList = [];
+let light;
 let camera;
 
 // Load the GLTF model
@@ -48,10 +66,14 @@ function retrieveListOfCameras(scene) {
         if (object.isCamera) {
             cameraList.push(object);
         }
+        if (object.isLight) {
+            lightsList.push(object);
+        }
     });
 
     //Set the camera to the first value in the list of cameras
     camera = cameraList[0];
+    light = lightsList[0];
 
     updateCameraAspect(camera);
 
@@ -67,19 +89,38 @@ function updateCameraAspect(camera) {
     camera.updateProjectionMatrix();
 }
 
+const iframe = document.createElement('iframe');
+iframe.style.width = '1028px';
+iframe.style.height = '790px';
+iframe.style.border = '0px';
+iframe.style.opacity = 0.5;
+iframe.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+let obj = new CSS3DObject(iframe);
+let objScale = 0.000285;
+obj.scale.set(objScale, objScale, objScale);
+obj.position.set(0, 0.3, 0.21);
+scene.add(obj);
+
+
 function onDocumentMouseMove(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
 }
 
-
 //A method to be run each time a frame is generated
 function animate() {
     requestAnimationFrame(animate);
 
-    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, (-mouse.x * Math.PI) / 100, 0.1)
-    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, (mouse.y * Math.PI) / 100, 0.1)
-    renderer.render(scene, camera); 
+    // camera.translateZ(0.01);
+
+    camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, (-mouse.x * Math.PI) / 100, 0.1);
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, (mouse.y * Math.PI) / 100, 0.1);
+
+    LightFlicker(light);
+
+    renderer.render(scene, camera);
+    rendererCSS3D.render(scene, camera);
+    // renderer2.render(scene, camera);
 };
 
 
