@@ -10,7 +10,11 @@ export const LightFlicker = (light) => {
 
     let prob = Math.random();
     if (prob < 0.05) {
-        light.intensity += 15;
+        if (Math.random() > 0.5) {
+            light.intensity += 15;
+        } else {
+            light.intensity -= 15;
+        }
         isFlickered = true;
     }
     console.log(light.intensity, isFlickered);
